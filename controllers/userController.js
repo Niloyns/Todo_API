@@ -35,7 +35,6 @@ module.exports.searchTodo = async (req, res) => {
     }
 };
 
-
 // Post a new todo
 module.exports.postTodo = async (req, res) => {
     try {
