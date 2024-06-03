@@ -1,10 +1,13 @@
 const express = require("express");
-const port = 5000;
+const dotenv = require("dotenv");
 const db = require("./config/mongoose");
 const router = require("./routers/userrout");
 
 const app = express();
 app.use(express.json());
+
+//Dotenv
+dotenv.config();
 
 //routing
 app.use("/",router);
@@ -17,6 +20,6 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: err.message || "Internal Server Error" });
 });
 
-app.listen(port,()=>{
-    console.log(`running on ${port} port`);
+app.listen(process.env.PORT,()=>{
+    console.log(`running on ${process.env.PORT} port`);
 });
