@@ -1,6 +1,6 @@
 const express = require("express"); // Import express module
 const router = express.Router(); // Create a new router object
-const { postTodo, multipleTodo, updateTodo, getTodo, deleteTodo } = require("../controllers/userController"); // Import controller functions
+const { postTodo, multipleTodo, updateTodo, getTodo, deleteTodo, searchTodo } = require("../controllers/userController"); // Import controller functions
 
 // Handle the POST request to create a new todo
 router.post("/", postTodo);
@@ -13,6 +13,9 @@ router.put("/:id", updateTodo);
 
 // Handle the GET request to fetch all todos
 router.get("/", getTodo);
+
+// Handle the GET request to search todos by title
+router.get("/search", searchTodo);
 
 // Handle the DELETE request to delete an existing todo by ID
 router.delete("/:id", deleteTodo);

@@ -15,6 +15,27 @@ module.exports.getTodo = async (req, res) => {
     }
 };
 
+// Function to search for todos by title // http://localhost:5000/search?todo="search"
+module.exports.searchTodo = async (req, res) => {
+    try {
+        const searchTerm = req.query.todo; // Get the search term from the query parameters
+        if (!searchTerm) {
+            return res.status(400).json({ error: "Search term 'todo' is required" }); // Return a 400 Bad Request if 'q' parameter is missing
+        }
+
+        const findData = await Todo.find().searchTodo(searchTerm); // Use the custom query method to find todos by title
+        if (!findData.length) {
+            return res.status(404).json({ message: "No todos found" }); // Return a 404 if no todos match the search term
+        }
+
+        res.status(200).json({ message: findData }); // Respond with the found todos
+    } catch (error) {
+        console.error(error.message); // Log any error that occurs
+        res.status(500).json({ error: error.message }); // Respond with a server error
+    }
+};
+
+
 // Post a new todo
 module.exports.postTodo = async (req, res) => {
     try {
