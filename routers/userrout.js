@@ -1,12 +1,20 @@
-const express = require("express");
-const router = express.Router();
-const {postTodo,multipleTodo,updateTodo,getTodo,deleteTodo} = require("../controllers/userController")
+const express = require("express"); // Import express module
+const router = express.Router(); // Create a new router object
+const { postTodo, multipleTodo, updateTodo, getTodo, deleteTodo } = require("../controllers/userController"); // Import controller functions
 
-//handel the Router
-router.post("/",postTodo);
-router.post("/all",multipleTodo);
-router.put("/:id",updateTodo);
-router.get("/",getTodo);
-router.delete("/:id",deleteTodo);
+// Handle the POST request to create a new todo
+router.post("/", postTodo);
 
-module.exports = router;
+// Handle the POST request to create multiple todos
+router.post("/all", multipleTodo);
+
+// Handle the PUT request to update an existing todo by ID
+router.put("/:id", updateTodo);
+
+// Handle the GET request to fetch all todos
+router.get("/", getTodo);
+
+// Handle the DELETE request to delete an existing todo by ID
+router.delete("/:id", deleteTodo);
+
+module.exports = router; // Export the router object
