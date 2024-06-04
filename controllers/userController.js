@@ -92,3 +92,24 @@ module.exports.deleteTodo = async (req, res) => {
         res.status(500).json({ error: error.message }); // Return error message if something goes wrong
     }
 };
+
+// Delete multiple todos by IDs
+module.exports.deleteMultipleTodosByIds = async (req, res) => {
+    try {
+        const ids = req.body.ids; // Assume the IDs are sent in the request body as an array
+        if (!ids || !Array.isArray(ids)) { // Check if IDs are provided and are in an array format
+            return res.status(400).json({ error: "No valid IDs provided" }); // Return error if IDs are not valid
+        }
+
+        const result = await Todo.deleteMany({ _id: { $in: ids } }); // Use deleteMany with $in operator to match and delete the provided IDs
+        if (result.deletedCount === 0) { // Check if any todos were deleted
+            return res.status(404).json({ message: "No todos matched the provided IDs" }); // Return error if no todos matched the provided IDs
+        }
+        
+        res.status(200).json({ message: `${result.deletedCount} todos deleted` }); // Return success message with the number of deleted todos
+    } catch (error) {
+        console.error(error.message); // Log any error that occurs
+        res.status(500).json({ error: error.message }); // Respond with a server error
+    }
+};
+
