@@ -1,94 +1,92 @@
-const Todo = require("../model/todoschema"); // Import the Todo model
+const bcrypt = require('bcrypt'); // Import bcrypt for hashing passwords
+const User = require('../model/UserSchema'); // Import the User model
+const jwt = require("jsonwebtoken"); // Import jsonwebtoken for creating JWT tokens
 
-// Get all todos
-module.exports.getTodo = async (req, res) => {
+// Register/signup function
+module.exports.signup = async (req, res) => {
+    console.log("signup"); // Log the signup process
     try {
-        const allTodos = await Todo.find(); // Fetch all todos from the database
-        if (!allTodos.length) { // Check if there are no todos
-            return res.status(400).json({ error: "No todos found" }); // Respond with an error if no todos found
+        const { name, username, password } = req.body; // Destructure the name, username, and password from the request body
+
+        // Check if a user with the given username already exists
+        const existingUser = await User.findOne({ username: username });
+        if (existingUser) {
+            return res.status(500).json({ message: "Username already exists" }); // Return error if the username already exists
         }
-        console.log(allTodos); // Log the fetched todos
-        res.status(200).json({ message: allTodos }); // Respond with the fetched todos
+
+        // Hash the password with bcrypt
+        const hashpassword = await bcrypt.hash(password, 10);
+
+        // Create a new user instance with the provided name, username, and hashed password
+        const newuser = new User({
+            name: name,
+            username: username,
+            password: hashpassword
+        });
+
+        // Save the new user to the database
+        await newuser.save();
+
+        // Send a success response
+        res.status(200).json({ message: "User registered successfully" });
+    } catch (error) {
+        console.log(error.message); // Log any error that occurs
+        res.status(500).json({ error: error.message }); // Respond with a server error
+    }
+};
+
+// Change password function
+module.exports.changePassword = async (req, res) => {
+    try {
+        const { username, currentPassword, newPassword } = req.body; // Destructure the username, currentPassword, and newPassword from the request body
+
+        // Find the user by username
+        const user = await User.findOne({ username: username });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" }); // Return error if user is not found
+        }
+
+        // Verify the current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Current password is incorrect" }); // Return error if current password is incorrect
+        }
+
+        // Hash the new password
+        const hashNewPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update the user's password with the new hashed password
+        user.password = hashNewPassword;
+        await user.save();
+
+        res.status(200).json({ message: "Password changed successfully" }); // Return success message
     } catch (error) {
         console.error(error.message); // Log any error that occurs
         res.status(500).json({ error: error.message }); // Respond with a server error
     }
 };
 
-// Function to search for todos by title // http://localhost:5000/search?todo="search"
-module.exports.searchTodo = async (req, res) => {
+// Login function
+module.exports.login = async (req, res) => {
+    const { username, password } = req.body; // Destructure username and password from the request body
+
     try {
-        const searchTerm = req.query.todo; // Get the search term from the query parameters
-        if (!searchTerm) {
-            return res.status(400).json({ error: "Search term 'todo' is required" }); // Return a 400 Bad Request if 'q' parameter is missing
+        const user = await User.findOne({ username: username }); // Find user by username
+        if (!user) { // If user is not found
+            return res.status(400).json({ message: 'Invalid username or password' }); // Respond with an error message
         }
 
-        const findData = await Todo.find().searchTodo(searchTerm); // Use the custom query method to find todos by title
-        if (!findData.length) {
-            return res.status(404).json({ message: "No todos found" }); // Return a 404 if no todos match the search term
+        const isPasswordValid = await bcrypt.compare(password, user.password); // Compare provided password with stored hashed password
+        if (!isPasswordValid) { // If password is not valid
+            return res.status(400).json({ message: 'Invalid username or password' }); // Respond with an error message
         }
 
-        res.status(200).json({ message: findData }); // Respond with the found todos
-    } catch (error) {
-        console.error(error.message); // Log any error that occurs
-        res.status(500).json({ error: error.message }); // Respond with a server error
-    }
-};
+        // Create a JWT token with user ID and username, and set expiration time
+        const token = jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.status(200).json({ token: token }); // Respond with the token
 
-// Post a new todo
-module.exports.postTodo = async (req, res) => {
-    try {
-        const newTodo = new Todo(req.body); // Create a new Todo instance with the request body
-        await newTodo.save(); // Save the new todo to the database
-        console.log(newTodo); // Log the new todo
-        res.status(200).json({ message: "Successfully posted a new todo" }); // Respond with success message
     } catch (error) {
-        console.error(error.message); // Log any error that occurs
-        res.status(400).json({ error: error.message }); // Respond with a client error
-    }
-};
-
-// Post multiple todos
-module.exports.multipleTodo = async (req, res) => {
-    try {
-        await Todo.insertMany(req.body); // Insert multiple todos from the request body
-        res.status(200).json({ message: "Successfully inserted multiple todos" }); // Respond with success message
-    } catch (error) {
-        console.error(error.message); // Log any error that occurs
-        res.status(500).json({ error: error.message }); // Respond with a server error
-    }
-};
-
-// Update a todo
-module.exports.updateTodo = async (req, res) => {
-    try {
-        const updatedTodo = await Todo.findOneAndUpdate(
-            { _id: req.params.id }, // Find the todo by ID from the request parameters
-            { $set: req.body }, // Set the updated fields from the request body
-            { new: true } // Return the updated document
-        );
-        if (!updatedTodo) { // Check if the todo was not found
-            return res.status(404).json({ message: "Todo Not Found" }); // Respond with an error if todo not found
-        }
-        res.status(200).json({ message: updatedTodo }); // Respond with the updated todo
-    } catch (error) {
-        console.error(error.message); // Log any error that occurs
-        res.status(500).json({ error: error.message }); // Respond with a server error
-    }
-};
-
-// Delete a todo
-module.exports.deleteTodo = async (req, res) => {
-    try {
-        const todoId = req.params.id; // Get the ID from request params
-        const deleteTodo = await Todo.findByIdAndDelete(todoId); // Find and delete the document by ID
-        console.log(deleteTodo); // Log the deleted todo
-        if (!deleteTodo) { // Check if the todo was not found
-            return res.status(404).json({ message: "Todo Not Found" }); // Return 404 if todo not found
-        }
-        res.status(200).json({ message: `Deleted todo with title: ${deleteTodo.title}` }); // Return success message with title of deleted todo
-    } catch (error) {
-        console.error(error.message); // Log any error that occurs
-        res.status(500).json({ error: error.message }); // Return error message if something goes wrong
+        console.error(error); // Log any errors
+        res.status(500).json({ error: 'Internal server error' }); // Respond with a server error message
     }
 };
