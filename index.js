@@ -1,17 +1,14 @@
 const express = require("express"); // Import express module
 const dotenv = require("dotenv"); // Import dotenv module to load environment variables
 const db = require("./config/mongoose"); // Import the mongoose configuration to connect to the database
-const router = require("./routers/userrout"); // Import the user router module
-
+const auth = require("./routers/authrout"); // Import the authentication router module
 const app = express(); // Create an instance of express
 
 app.use(express.json()); // Middleware to parse JSON bodies in requests
 
-// Load environment variables from .env file
-dotenv.config();
+dotenv.config(); // Load environment variables from .env file
 
-// Use the router for handling routes starting with "/"
-app.use("/", router);
+app.use("/", auth); // Use the authentication router for handling routes starting with "/"
 
 // Default error handling middleware
 app.use((err, req, res, next) => {
