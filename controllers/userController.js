@@ -38,7 +38,7 @@ module.exports.signup = async (req, res) => {
 // Change password function
 module.exports.changePassword = async (req, res) => {
     try {
-        const { username, currentPassword, newPassword } = req.body; // Destructure the username, currentPassword, and newPassword from the request body
+        const { username, currentpassword, newpassword } = req.body; // Destructure the username, currentPassword, and newPassword from the request body
 
         // Find the user by username
         const user = await User.findOne({ username: username });
@@ -47,13 +47,13 @@ module.exports.changePassword = async (req, res) => {
         }
 
         // Verify the current password
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        const isMatch = await bcrypt.compare(currentpassword, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: "Current password is incorrect" }); // Return error if current password is incorrect
         }
 
         // Hash the new password
-        const hashNewPassword = await bcrypt.hash(newPassword, 10);
+        const hashNewPassword = await bcrypt.hash(newpassword, 10);
 
         // Update the user's password with the new hashed password
         user.password = hashNewPassword;
