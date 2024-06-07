@@ -4,7 +4,7 @@ const Todo = require("../model/todoschema"); // Import the Todo model
 module.exports.getTodo = async (req, res) => {
     try {
         const userId = req.user.id; // Get the authenticated user's ID from the request
-        const userTodos = await Todo.find().populate('user', 'name username'); // Fetch todos specific to the user and populate user details
+        const userTodos = await Todo.find({ user: userId }).populate('user', 'name username'); // Fetch todos specific to the user and populate user details
         
         if (!userTodos.length) { // Check if there are no todos for the user
             return res.status(404).json({ error: 'No todos found for this user' }); // Respond with an error if no todos found
@@ -60,7 +60,7 @@ exports.postTodo = async (req, res) => {
 
 // Post multiple todos
 module.exports.multipleTodo = async (req, res) => {
-    const todos = req.body.map(todo => ({ // Map through each todo in the request body /  param=>({key:value}) its a diract return arrow functions
+    const todos = req.body.map(todo => ({ // Map through each todo in the request body /  param=>({key:value}) its a direct return arrow functions
         ...todo, // Spread the properties of each todo
         user: req.user.id, // Assign the authenticated user's ID to each todo's user field
     }));
