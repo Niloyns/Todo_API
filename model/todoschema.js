@@ -11,6 +11,11 @@ const todoSchema = new mongoose.Schema(
       type: String, // Define the type of the description field as String
       required: true, // Make the description field required
     },
+    user: {
+      type: mongoose.Types.ObjectId, // Reference to User model by ObjectId /mongo db document _id is typeof ObjectId
+      ref: "User", // Referencing the "User" model
+      required: true, // Ensure a user ID is always provided
+    }
   },
   {
     timestamps: true, // Automatically add createdAt and updatedAt timestamps
@@ -18,8 +23,8 @@ const todoSchema = new mongoose.Schema(
 );
 
 // Add a custom query method to the schema for searching todos by title
-todoSchema.query.searchTodo = function(searchitem) {
-    return this.find({ title: new RegExp(searchitem, "i") }); // Use a regular expression for case-insensitive search
+todoSchema.query.searchTodo = function (searchitem) {
+  return this.find({ title: new RegExp(searchitem, "i") }); // Use a regular expression for case-insensitive search
 };
 
 // Create a model named "Todo" using the todoSchema

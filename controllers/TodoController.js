@@ -3,19 +3,22 @@ const Todo = require("../model/todoschema"); // Import the Todo model
 // Get all todos
 module.exports.getTodo = async (req, res) => {
     try {
-        const allTodos = await Todo.find(); // Fetch all todos from the database
-        if (!allTodos.length) { // Check if there are no todos
-            return res.status(400).json({ error: "No todos found" }); // Respond with an error if no todos found
+        const userId = req.user.id; // Get the authenticated user's ID from the request
+        const userTodos = await Todo.find().populate('user', 'name username'); // Fetch todos specific to the user and populate user details
+        
+        if (!userTodos.length) { // Check if there are no todos for the user
+            return res.status(404).json({ error: 'No todos found for this user' }); // Respond with an error if no todos found
         }
-        console.log(allTodos); // Log the fetched todos
-        res.status(200).json({ message: allTodos }); // Respond with the fetched todos
+
+        console.log(userTodos); // Log the fetched todos
+        res.status(200).json({ todos: userTodos }); // Respond with the fetched todos
     } catch (error) {
         console.error(error.message); // Log any error that occurs
         res.status(500).json({ error: error.message }); // Respond with a server error
     }
 };
 
-// Function to search for todos by title // http://localhost:5000/search?todo="search"
+// Function to search for todos by title // http://localhost:5000/todo/search?todo="search"
 module.exports.searchTodo = async (req, res) => {
     try {
         const searchTerm = req.query.todo; // Get the search term from the query parameters
@@ -36,23 +39,35 @@ module.exports.searchTodo = async (req, res) => {
 };
 
 // Post a new todo
-module.exports.postTodo = async (req, res) => {
+exports.postTodo = async (req, res) => {
     try {
-        const newTodo = new Todo(req.body); // Create a new Todo instance with the request body
-        await newTodo.save(); // Save the new todo to the database
-        console.log(newTodo); // Log the new todo
-        res.status(200).json({ message: "Successfully posted a new todo" }); // Respond with success message
+      const { title, description } = req.body;
+      const userId = req.user.id; // Assuming req.user contains the authenticated user's ID
+  
+      const newTodo = new Todo({
+        title,
+        description,
+        user: userId, // Assign the authenticated user's ID to the todo's user field
+      });
+  
+      await newTodo.save();
+      res.status(201).json({ message: 'Todo created successfully', todo: newTodo });
     } catch (error) {
-        console.error(error.message); // Log any error that occurs
-        res.status(400).json({ error: error.message }); // Respond with a client error
+      console.error(error.message);
+      res.status(500).json({ error: 'Server error' });
     }
-};
+  };
 
 // Post multiple todos
 module.exports.multipleTodo = async (req, res) => {
+    const todos = req.body.map(todo => ({ // Map through each todo in the request body /  param=>({key:value}) its a diract return arrow functions
+        ...todo, // Spread the properties of each todo
+        user: req.user.id, // Assign the authenticated user's ID to each todo's user field
+    }));
+
     try {
-        await Todo.insertMany(req.body); // Insert multiple todos from the request body
-        res.status(200).json({ message: "Successfully inserted multiple todos" }); // Respond with success message
+        await Todo.insertMany(todos); // Insert multiple todos into the database
+        res.status(200).json({ message: "Successfully inserted multiple todos" }); // Respond with a success message
     } catch (error) {
         console.error(error.message); // Log any error that occurs
         res.status(500).json({ error: error.message }); // Respond with a server error
