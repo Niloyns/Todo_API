@@ -21,12 +21,13 @@ module.exports.getTodo = async (req, res) => {
 // Function to search for todos by title // http://localhost:5000/todo/search?todo="search"
 module.exports.searchTodo = async (req, res) => {
     try {
+        const userId = req.user.id; // Get the authenticated user's ID from the request
         const searchTerm = req.query.todo; // Get the search term from the query parameters
         if (!searchTerm) {
             return res.status(400).json({ error: "Search term 'todo' is required" }); // Return a 400 Bad Request if 'q' parameter is missing
         }
 
-        const findData = await Todo.find().searchTodo(searchTerm); // Use the custom query method to find todos by title
+        const findData = await Todo.find({ user: userId }).populate('user', 'name username').searchTodo(searchTerm); // Use the custom query method to find todos by title
         if (!findData.length) {
             return res.status(404).json({ message: "No todos found" }); // Return a 404 if no todos match the search term
         }

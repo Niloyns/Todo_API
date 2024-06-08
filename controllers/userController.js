@@ -82,7 +82,7 @@ module.exports.login = async (req, res) => {
         }
 
         // Create a JWT token with user ID and username, and set expiration time
-        const token = jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '10h' });
         res.status(200).json({ token: token }); // Respond with the token
 
     } catch (error) {
