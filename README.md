@@ -83,6 +83,7 @@ This project is a TODO API that allows users to create, read, update, and delete
 - `DELETE /todo/:id` **Delete a todo**
 - `POST /todo/deleteMany` **Delete multiple todos**
 - `GET /todo/search` **Search todos**
+- `POST /change-password"` **change a user's password**
 
 ### Authentication Routes
 
@@ -287,6 +288,32 @@ All todo routes require a valid JWT token to be passed in the `Authorization` he
   }
   ```
 
+- **Change a user's password**
+
+  Expected paramiter in body username, currentpassword, newpassword
+
+  ```http
+  POST todo/change-password
+  ```
+
+  **Request Body:**
+
+  ```json
+  {
+    "username": "",
+    "currentpassword": "",
+    "newpassword": ""
+  }
+  ```
+
+  **Response:**
+
+  ```json
+  {
+    "message": "Password changed successfully"
+  }
+  ```
+
 - **Search Todos**
 
   ```http
@@ -294,6 +321,8 @@ All todo routes require a valid JWT token to be passed in the `Authorization` he
   ```
 
   **Response:**
+
+  - Respond with the found todos
 
   ```json
   {
@@ -304,35 +333,6 @@ All todo routes require a valid JWT token to be passed in the `Authorization` he
       }
     ]
   }
-  ```
-
-## Middlewares
-
-- **verifyToken**
-
-  This middleware checks if the request has a valid JWT token.
-
-  ```javascript
-  const jwt = require("jsonwebtoken");
-
-  const verifyToken = (req, res, next) => {
-    const token = req.header("Authorization");
-    if (!token) {
-      return res
-        .status(401)
-        .json({ message: "Access Denied. No token provided." });
-    }
-
-    try {
-      const verified = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = verified;
-      next();
-    } catch (error) {
-      res.status(400).json({ message: "Invalid Token" });
-    }
-  };
-
-  module.exports = verifyToken;
   ```
 
 ## Running the Project
