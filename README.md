@@ -293,7 +293,7 @@ All todo routes require a valid JWT token to be passed in the `Authorization` he
   Expected paramiter in body username, currentpassword, newpassword
 
   ```http
-  POST todo/change-password
+  POST /todo/change-password
   ```
 
   **Request Body:**
